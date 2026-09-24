@@ -155,6 +155,43 @@ fun SettingsPage(onNavigateBack: () -> Unit, onNavigateTo: (String) -> Unit) {
                     }
                 }
             item {
+                com.junkfood.seal.ui.component.SettingCategoryTitle(text = "General")
+            }
+            item {
+                SettingItem(
+                    title = stringResource(id = R.string.look_and_feel),
+                    description = stringResource(id = R.string.display_settings),
+                    icon = Icons.Rounded.Palette,
+                ) {
+                    onNavigateTo(Route.APPEARANCE)
+                }
+            }
+            item {
+                SettingItem(
+                    title = stringResource(id = R.string.interface_and_interaction),
+                    description = stringResource(id = R.string.settings_before_download),
+                    icon = Icons.Rounded.ViewComfy,
+                ) {
+                    onNavigateTo(Route.INTERACTION)
+                }
+            }
+            item {
+                SettingItem(
+                    title = stringResource(id = R.string.network),
+                    description = stringResource(id = R.string.network_settings_desc),
+                    icon =
+                        if (App.connectivityManager.isActiveNetworkMetered)
+                            Icons.Rounded.SignalCellular4Bar
+                        else Icons.Rounded.SignalWifi4Bar,
+                ) {
+                    onNavigateTo(Route.NETWORK_PREFERENCES)
+                }
+            }
+
+            item {
+                com.junkfood.seal.ui.component.SettingCategoryTitle(text = "Download tools")
+            }
+            item {
                 SettingItem(
                     title = stringResource(id = R.string.general_settings),
                     description = stringResource(id = R.string.general_settings_desc),
@@ -185,18 +222,6 @@ fun SettingsPage(onNavigateBack: () -> Unit, onNavigateTo: (String) -> Unit) {
             }
             item {
                 SettingItem(
-                    title = stringResource(id = R.string.network),
-                    description = stringResource(id = R.string.network_settings_desc),
-                    icon =
-                        if (App.connectivityManager.isActiveNetworkMetered)
-                            Icons.Rounded.SignalCellular4Bar
-                        else Icons.Rounded.SignalWifi4Bar,
-                ) {
-                    onNavigateTo(Route.NETWORK_PREFERENCES)
-                }
-            }
-            item {
-                SettingItem(
                     title = stringResource(id = R.string.custom_command),
                     description = stringResource(id = R.string.custom_command_desc),
                     icon = Icons.Rounded.Terminal,
@@ -204,22 +229,17 @@ fun SettingsPage(onNavigateBack: () -> Unit, onNavigateTo: (String) -> Unit) {
                     onNavigateTo(Route.TEMPLATE)
                 }
             }
+
             item {
-                SettingItem(
-                    title = stringResource(id = R.string.look_and_feel),
-                    description = stringResource(id = R.string.display_settings),
-                    icon = Icons.Rounded.Palette,
-                ) {
-                    onNavigateTo(Route.APPEARANCE)
-                }
+                com.junkfood.seal.ui.component.SettingCategoryTitle(text = "SnapSeal")
             }
             item {
                 SettingItem(
-                    title = stringResource(id = R.string.interface_and_interaction),
-                    description = stringResource(id = R.string.settings_before_download),
-                    icon = Icons.Rounded.ViewComfy,
+                    title = "About SnapSeal",
+                    description = "SnapSeal app created by dev-abuhurairah",
+                    icon = Icons.Rounded.Info,
                 ) {
-                    onNavigateTo(Route.INTERACTION)
+                    onNavigateTo(Route.ABOUT)
                 }
             }
             item {
@@ -229,15 +249,6 @@ fun SettingsPage(onNavigateBack: () -> Unit, onNavigateTo: (String) -> Unit) {
                     icon = Icons.Rounded.BugReport,
                 ) {
                     onNavigateTo(Route.TROUBLESHOOTING)
-                }
-            }
-            item {
-                SettingItem(
-                    title = stringResource(id = R.string.about),
-                    description = stringResource(id = R.string.about_page),
-                    icon = Icons.Rounded.Info,
-                ) {
-                    onNavigateTo(Route.ABOUT)
                 }
             }
         }

@@ -7,10 +7,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.Color
+import com.junkfood.seal.ui.component.SnaptubeBottomBar
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -138,48 +141,82 @@ fun AppEntry(dialogViewModel: DownloadDialogViewModel) {
                 )
             },
         ) {
-            NavHost(
-                modifier = Modifier.align(Alignment.Center),
-                navController = navController,
-                startDestination = Route.HOME,
-            ) {
-                animatedComposable(Route.HOME) {
-                    DownloadPageV2(
-                        dialogViewModel = dialogViewModel,
-                        onMenuOpen = {
-                            view.slightHapticFeedback()
-                            scope.launch { drawerState.open() }
-                        },
-                    )
-                }
-                animatedComposable(Route.DOWNLOADS) { VideoListPage { onNavigateBack() } }
-                animatedComposableVariant(Route.TASK_LIST) {
-                    TaskListPage(
-                        onNavigateBack = onNavigateBack,
-                        onNavigateToDetail = { navController.navigate(Route.TASK_LOG id it) },
-                    )
-                }
-                slideInVerticallyComposable(
-                    Route.TASK_LOG arg Route.TASK_HASHCODE,
-                    arguments = listOf(navArgument(Route.TASK_HASHCODE) { type = NavType.IntType }),
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                containerColor = Color.Transparent,
+                bottomBar = {
+                    if (currentRoute in listOf(
+                            Route.HOME,
+                            Route.DOWNLOADS,
+                            Route.SETTINGS_PAGE,
+                            Route.SETTINGS,
+                            Route.TASK_LIST,
+                        )
+                    ) {
+                        SnaptubeBottomBar(
+                            currentRoute = currentRoute,
+                            onNavigate = { route ->
+                                if (currentRoute != route) {
+                                    navController.navigate(route) {
+                                        popUpTo(Route.HOME) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            },
+                        )
+                    }
+                },
+            ) { scaffoldPadding ->
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(scaffoldPadding),
                 ) {
-                    TaskLogPage(
-                        onNavigateBack = onNavigateBack,
-                        taskHashCode = it.arguments?.getInt(Route.TASK_HASHCODE) ?: -1,
-                    )
+                    NavHost(
+                        modifier = Modifier.align(Alignment.Center),
+                        navController = navController,
+                        startDestination = Route.HOME,
+                    ) {
+                        animatedComposable(Route.HOME) {
+                            DownloadPageV2(
+                                dialogViewModel = dialogViewModel,
+                                onMenuOpen = {
+                                    view.slightHapticFeedback()
+                                    scope.launch { drawerState.open() }
+                                },
+                            )
+                        }
+                        animatedComposable(Route.DOWNLOADS) { VideoListPage { onNavigateBack() } }
+                        animatedComposableVariant(Route.TASK_LIST) {
+                            TaskListPage(
+                                onNavigateBack = onNavigateBack,
+                                onNavigateToDetail = { navController.navigate(Route.TASK_LOG id it) },
+                            )
+                        }
+                        slideInVerticallyComposable(
+                            Route.TASK_LOG arg Route.TASK_HASHCODE,
+                            arguments = listOf(navArgument(Route.TASK_HASHCODE) { type = NavType.IntType }),
+                        ) {
+                            TaskLogPage(
+                                onNavigateBack = onNavigateBack,
+                                taskHashCode = it.arguments?.getInt(Route.TASK_HASHCODE) ?: -1,
+                            )
+                        }
+
+                        settingsGraph(
+                            onNavigateBack = onNavigateBack,
+                            onNavigateTo = { route ->
+                                navController.navigate(route = route) { launchSingleTop = true }
+                            },
+                            cookiesViewModel = cookiesViewModel,
+                        )
+                    }
+
+                    AppUpdater()
+                    YtdlpUpdater()
                 }
-
-                settingsGraph(
-                    onNavigateBack = onNavigateBack,
-                    onNavigateTo = { route ->
-                        navController.navigate(route = route) { launchSingleTop = true }
-                    },
-                    cookiesViewModel = cookiesViewModel,
-                )
             }
-
-            AppUpdater()
-            YtdlpUpdater()
         }
     }
 }

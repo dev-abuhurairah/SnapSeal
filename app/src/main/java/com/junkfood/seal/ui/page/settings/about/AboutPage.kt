@@ -54,11 +54,11 @@ import com.junkfood.seal.util.AUTO_UPDATE
 import com.junkfood.seal.util.PreferenceUtil
 import com.junkfood.seal.util.ToastUtil
 
-private const val releaseURL = "https://github.com/JunkFood02/Seal/releases"
-private const val repoUrl = "https://github.com/JunkFood02/Seal"
+private const val releaseURL = "https://github.com/dev-abuhurairah/SnapSeal/releases"
+private const val repoUrl = "https://github.com/dev-abuhurairah/SnapSeal"
 const val weblate = "https://hosted.weblate.org/engage/seal/"
 const val YtdlpRepository = "https://github.com/yt-dlp/yt-dlp"
-private const val githubIssueUrl = "https://github.com/JunkFood02/Seal/issues"
+private const val githubIssueUrl = "https://github.com/dev-abuhurairah/SnapSeal/issues"
 private const val telegramChannelUrl = "https://t.me/seal_app"
 private const val matrixSpaceUrl = "https://matrix.to/#/#seal-space:matrix.org"
 private const val githubSponsor = "https://github.com/sponsors/JunkFood02"
@@ -110,6 +110,15 @@ fun AboutPage(
         },
         content = {
             LazyColumn(modifier = Modifier.padding(it)) {
+                item {
+                    PreferenceItem(
+                        title = "SnapSeal",
+                        description = "SnapSeal app created by dev-abuhurairah",
+                        icon = Icons.Outlined.AutoAwesome,
+                    ) {
+                        openUrl(repoUrl)
+                    }
+                }
                 item {
                     PreferenceItem(
                         title = stringResource(R.string.readme),

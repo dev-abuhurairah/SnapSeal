@@ -59,15 +59,27 @@ fun SealTheme(
 
     val colorScheme =
         dynamicColorScheme(!darkTheme).run {
-            if (isHighContrastModeEnabled && darkTheme)
+            if (darkTheme)
                 copy(
-                    surface = Color.Black,
-                    background = Color.Black,
-                    surfaceContainerLowest = Color.Black,
-                    surfaceContainerLow = surfaceContainerLowest,
-                    surfaceContainer = surfaceContainerLow,
-                    surfaceContainerHigh = surfaceContainerLow,
-                    surfaceContainerHighest = surfaceContainer,
+                    primary = Color(0xFFFFCC00),
+                    onPrimary = Color.Black,
+                    primaryContainer = Color(0xFF3B3300),
+                    onPrimaryContainer = Color(0xFFFFE57F),
+                    secondary = Color(0xFFFFD54F),
+                    onSecondary = Color.Black,
+                    secondaryContainer = Color(0xFF2C2814),
+                    onSecondaryContainer = Color(0xFFFFE57F),
+                    surface = if (isHighContrastModeEnabled) Color.Black else Color(0xFF131316),
+                    onSurface = Color(0xFFF0F0F2),
+                    surfaceVariant = Color(0xFF1E1E24),
+                    onSurfaceVariant = Color(0xFFA5A5AB),
+                    background = if (isHighContrastModeEnabled) Color.Black else Color(0xFF0D0D10),
+                    onBackground = Color(0xFFF0F0F2),
+                    surfaceContainerLowest = Color(0xFF0A0A0C),
+                    surfaceContainerLow = Color(0xFF121215),
+                    surfaceContainer = Color(0xFF17171C),
+                    surfaceContainerHigh = Color(0xFF1F1F24),
+                    surfaceContainerHighest = Color(0xFF282830),
                 )
             else this
         }

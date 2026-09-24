@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun SettingTitle(text: String) {
@@ -29,39 +30,61 @@ fun SettingTitle(text: String) {
 }
 
 @Composable
-fun SettingItem(title: String, description: String, icon: ImageVector?, onClick: () -> Unit) {
-    Surface(modifier = Modifier.clickable { onClick() }) {
+fun SettingCategoryTitle(text: String) {
+    Text(
+        text = text,
+        color = androidx.compose.ui.graphics.Color(0xFF8E8E93),
+        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+        fontSize = 13.sp,
+        modifier = Modifier.padding(start = 20.dp, top = 24.dp, bottom = 6.dp),
+    )
+}
+
+@Composable
+fun SettingItem(title: String, description: String = "", icon: ImageVector?, onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier.clickable { onClick() },
+        color = androidx.compose.ui.graphics.Color.Transparent,
+    ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 20.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             icon?.let {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.padding(end = 16.dp).size(24.dp),
-                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(end = 16.dp).size(22.dp),
+                    tint = androidx.compose.ui.graphics.Color(0xFFC0C0C8),
                 )
             }
             Column(
-                modifier = Modifier.weight(1f).padding(start = if (icon == null) 12.dp else 0.dp)
+                modifier = Modifier.weight(1f).padding(start = if (icon == null) 8.dp else 0.dp)
             ) {
                 Text(
                     text = title,
                     maxLines = 1,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = description,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    style = MaterialTheme.typography.bodyMedium,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                if (description.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = description,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        style = MaterialTheme.typography.bodySmall,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
+            Icon(
+                imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = androidx.compose.ui.graphics.Color(0xFF6E6E76),
+                modifier = Modifier.size(20.dp),
+            )
         }
     }
 }

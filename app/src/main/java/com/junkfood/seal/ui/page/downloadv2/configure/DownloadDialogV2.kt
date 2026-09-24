@@ -14,8 +14,18 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.junkfood.seal.ui.component.SnaptubeYellow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -523,158 +533,284 @@ private fun ConfigurePage(
     onConfigSave: (Config) -> Unit,
     onActionPost: (Action) -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    var selectedType by remember(config) { mutableStateOf(config.downloadType) }
-    var useFormatSelection by remember(config) { mutableStateOf(config.useFormatSelection) }
-    val canProceed = selectedType in config.typeEntries
+    var selectedOption by remember { mutableStateOf("MUSIC_MP3") }
 
-    var showTemplateSelectionDialog by remember { mutableStateOf(false) }
-    var showTemplateCreatorDialog by remember { mutableStateOf(false) }
-    var showTemplateEditorDialog by remember { mutableStateOf(false) }
-    val template by
-        remember(showTemplateCreatorDialog, showTemplateSelectionDialog, showTemplateEditorDialog) {
-            mutableStateOf(PreferenceUtil.getTemplate())
-        }
-
-    LaunchedEffect(selectedType) {
-        if (selectedType == Playlist) {
-            useFormatSelection = false
+    val domain = remember(url) {
+        try {
+            java.net.URI(url).host?.removePrefix("www.") ?: "youtu.be"
+        } catch (e: Exception) {
+            "youtu.be"
         }
     }
+    val titleText = remember(url) {
+        val extracted = url.substringAfterLast("/").take(55)
+        if (extracted.isNotBlank()) extracted else "Video Download ($domain)"
+    }
 
-    Column {
-        Column(modifier = modifier.padding(horizontal = 20.dp)) {
-            Header(
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                title = stringResource(R.string.settings_before_download),
-                icon = Icons.Outlined.DoneAll,
-            )
-            DrawerSheetSubtitle(text = stringResource(id = R.string.download_type))
-            DownloadTypeSelectionGroup(
-                typeEntries = config.typeEntries,
-                selectedType = selectedType,
-                onSelect = { selectedType = it },
-            )
-            Column(modifier = Modifier.animateContentSize()) {
-                if (selectedType != Command) {
-                    DrawerSheetSubtitle(
-                        text = stringResource(id = R.string.format_selection),
-                        modifier = Modifier,
-                    )
-                    Preset(
-                        modifier = Modifier,
-                        preference = preferences,
-                        selected = !useFormatSelection,
-                        downloadType = selectedType,
-                        onClick = { useFormatSelection = false },
-                        showEditIcon = !useFormatSelection && selectedType != Playlist,
-                        onEdit = { onPresetEdit(selectedType) },
-                    )
-                    Custom(
-                        selected = useFormatSelection,
-                        enabled = selectedType != Playlist,
-                        onClick = { useFormatSelection = true },
-                    )
-                } else {
-                    if (showTemplateSelectionDialog) {
-                        TemplatePickerDialog { showTemplateSelectionDialog = false }
-                    }
-                    if (showTemplateCreatorDialog) {
-                        CommandTemplateDialog(
-                            onDismissRequest = { showTemplateCreatorDialog = false },
-                            confirmationCallback = { scope.launch { TEMPLATE_ID.updateInt(it) } },
-                        )
-                    }
-                    if (showTemplateEditorDialog) {
-                        CommandTemplateDialog(
-                            commandTemplate = template,
-                            onDismissRequest = { showTemplateEditorDialog = false },
-                        )
-                    }
-                    DrawerSheetSubtitle(
-                        text = stringResource(id = R.string.template_selection),
-                        modifier = Modifier,
-                    )
-                    LazyRow(modifier = Modifier) {
-                        item {
-                            ButtonChip(
-                                icon = Icons.Outlined.Code,
-                                label = template.name,
-                                onClick = { showTemplateSelectionDialog = true },
-                            )
-                        }
-                        item {
-                            ButtonChip(
-                                icon = Icons.Outlined.NewLabel,
-                                label = stringResource(id = R.string.new_template),
-                                onClick = { showTemplateCreatorDialog = true },
-                            )
-                        }
-                        item {
-                            ButtonChip(
-                                icon = Icons.Outlined.Edit,
-                                label = stringResource(id = R.string.edit_template, template.name),
-                                onClick = { showTemplateEditorDialog = true },
-                            )
-                        }
-                    }
-                }
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .background(Color(0xFF141416))
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+    ) {
+        // Drag Handle
+        Box(
+            modifier =
+                Modifier.align(Alignment.CenterHorizontally)
+                    .width(42.dp)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(Color(0xFF3E3E44))
+        )
+        Spacer(Modifier.height(16.dp))
+
+        // Title: Download video as
+        Text(
+            text = "Download video as",
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        // Video Preview Row (Red thumbnail with play arrow + Title + domain)
+        Row(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color(0xFF1E1E22))
+                    .padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier =
+                    Modifier.size(width = 76.dp, height = 50.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFF4A1818)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.PlayArrow,
+                    contentDescription = null,
+                    tint = Color(0xFFE53935),
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = titleText,
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = domain,
+                    color = Color(0xFF8E8E93),
+                    fontSize = 11.sp,
+                )
             }
         }
-        var expanded by remember { mutableStateOf(false) }
-        ExpandableTitle(expanded = expanded, onClick = { expanded = true }) { settingChips() }
 
-        ActionButtons(
-            modifier = Modifier.padding(horizontal = 20.dp),
-            canProceed = canProceed,
-            selectedType = selectedType,
-            useFormatSelection = useFormatSelection,
-            onCancel = { onActionPost(Action.HideSheet) },
-            onDownload = {
-                onConfigSave(
-                    config.copy(
-                        useFormatSelection = useFormatSelection,
-                        downloadType = selectedType,
-                    )
+        Spacer(Modifier.height(18.dp))
+
+        // Section: Music
+        Text(
+            text = "Music",
+            color = Color(0xFF7E7E84),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+        )
+        Spacer(Modifier.height(8.dp))
+
+        SnaptubeFormatRow(
+            icon = Icons.Filled.MusicNote,
+            title = "Fast",
+            fileSize = "12.9 MB",
+            selected = selectedOption == "MUSIC_FAST",
+            onClick = { selectedOption = "MUSIC_FAST" },
+        )
+        SnaptubeFormatRow(
+            icon = Icons.Filled.MusicNote,
+            title = "Classic MP3",
+            fileSize = "14.0 MB",
+            selected = selectedOption == "MUSIC_MP3",
+            onClick = { selectedOption = "MUSIC_MP3" },
+        )
+
+        Spacer(Modifier.height(14.dp))
+
+        // Section: Video
+        Text(
+            text = "Video",
+            color = Color(0xFF7E7E84),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+        )
+        Spacer(Modifier.height(8.dp))
+
+        SnaptubeFormatRow(
+            icon = Icons.Filled.Videocam,
+            title = "Fast (360p)",
+            fileSize = "25.1 MB",
+            selected = selectedOption == "VIDEO_360P",
+            onClick = { selectedOption = "VIDEO_360P" },
+        )
+        SnaptubeFormatRow(
+            icon = Icons.Filled.Videocam,
+            title = "High quality (1080p)",
+            fileSize = "126.7 MB",
+            selected = selectedOption == "VIDEO_1080P",
+            onClick = { selectedOption = "VIDEO_1080P" },
+        )
+
+        Spacer(Modifier.height(14.dp))
+
+        // More formats > button
+        Row(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .clickable {
+                        val isAudio = selectedOption.startsWith("MUSIC")
+                        onActionPost(
+                            Action.FetchFormats(
+                                url = url,
+                                audioOnly = isAudio,
+                                preferences = preferences,
+                            )
+                        )
+                    }
+                    .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "More formats",
+                color = Color.White,
+                fontSize = 14.sp,
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "All",
+                    color = Color(0xFF8E8E93),
+                    fontSize = 13.sp,
                 )
+                Spacer(Modifier.width(4.dp))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = null,
+                    tint = Color(0xFF8E8E93),
+                    modifier = Modifier.size(14.dp),
+                )
+            }
+        }
+
+        Spacer(Modifier.height(18.dp))
+
+        // Big Yellow Download Button
+        Button(
+            onClick = {
+                val updatedPrefs =
+                    when (selectedOption) {
+                        "MUSIC_FAST" -> preferences.copy(extractAudio = true, convertAudio = false)
+                        "MUSIC_MP3" ->
+                            preferences.copy(
+                                extractAudio = true,
+                                convertAudio = true,
+                                audioConvertFormat = 0,
+                            )
+                        "VIDEO_360P" ->
+                            preferences.copy(extractAudio = false, videoResolution = 360)
+                        "VIDEO_1080P" ->
+                            preferences.copy(extractAudio = false, videoResolution = 1080)
+                        else -> preferences
+                    }
                 onActionPost(
                     Action.DownloadWithPreset(
                         urlList = listOf(url),
-                        preferences = preferences.copy(extractAudio = selectedType == Audio),
+                        preferences = updatedPrefs,
                     )
                 )
             },
-            onFetchInfo = {
-                onConfigSave(
-                    config.copy(
-                        useFormatSelection = useFormatSelection,
-                        downloadType = selectedType,
-                    )
-                )
-                if (selectedType == Playlist) {
-                    onActionPost(Action.FetchPlaylist(url = url, preferences = preferences))
-                } else {
-                    onActionPost(
-                        Action.FetchFormats(
-                            url = url,
-                            audioOnly = selectedType == Audio,
-                            preferences = preferences,
-                        )
-                    )
-                }
-            },
-            onTaskStart = {
-                onConfigSave(
-                    config.copy(
-                        useFormatSelection = useFormatSelection,
-                        downloadType = selectedType,
-                    )
-                )
-                onActionPost(
-                    Action.RunCommand(url = url, template = template, preferences = preferences)
-                )
-            },
+            modifier = Modifier.fillMaxWidth().height(50.dp),
+            shape = RoundedCornerShape(25.dp),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = SnaptubeYellow,
+                    contentColor = Color.Black,
+                ),
+        ) {
+            Text(
+                text = "Download",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = Color.Black,
+            )
+        }
+
+        Spacer(Modifier.height(12.dp))
+    }
+}
+
+@Composable
+private fun SnaptubeFormatRow(
+    icon: ImageVector,
+    title: String,
+    fileSize: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier =
+            Modifier.fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(vertical = 10.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = Color(0xFFC0C0C6),
+            modifier = Modifier.size(20.dp),
         )
+        Spacer(Modifier.width(14.dp))
+        Text(
+            text = title,
+            color = Color.White,
+            fontSize = 14.sp,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            text = fileSize,
+            color = Color(0xFF8E8E93),
+            fontSize = 13.sp,
+        )
+        Spacer(Modifier.width(16.dp))
+
+        // Snaptube Custom Circular Radio Button
+        if (selected) {
+            Box(
+                modifier = Modifier.size(22.dp).clip(CircleShape).background(SnaptubeYellow),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = null,
+                    tint = Color.Black,
+                    modifier = Modifier.size(15.dp),
+                )
+            }
+        } else {
+            Box(
+                modifier =
+                    Modifier.size(22.dp).clip(CircleShape).border(1.5.dp, Color(0xFF55555C), CircleShape)
+            )
+        }
     }
 }
 

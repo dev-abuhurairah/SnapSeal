@@ -70,6 +70,7 @@ fun CreditsPage(onNavigateBack: () -> Unit) {
 
     val creditsList =
         listOf(
+            Credit("SnapSeal Creator: dev-abuhurairah", "SnapSeal Project", "https://github.com/dev-abuhurairah"),
             Credit("yt-dlp", UNLICENSE, ytdlpUrl),
             Credit("Read You", GPL_V3, readYou),
             Credit("youtubedl-android", GPL_V3, youtubedlAndroidUrl),

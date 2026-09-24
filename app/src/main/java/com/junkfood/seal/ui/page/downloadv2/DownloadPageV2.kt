@@ -206,49 +206,25 @@ fun DownloadPageV2(
     val clipboardManager = LocalClipboardManager.current
     val uriHandler = LocalUriHandler.current
 
-    DownloadPageImplV2(
-        modifier = modifier,
-        taskDownloadStateMap = downloader.getTaskStateMap(),
-        downloadCallback = {
-            view.slightHapticFeedback()
-            dialogViewModel.postAction(Action.ShowSheet())
-        },
-        onMenuOpen = onMenuOpen,
-    ) { task, action ->
-        view.slightHapticFeedback()
-        when (action) {
-            UiAction.Cancel -> downloader.cancel(task)
-            UiAction.Delete -> downloader.remove(task)
-            UiAction.Resume -> downloader.restart(task)
-            is UiAction.CopyErrorReport -> {
-                clipboardManager.setText(
-                    AnnotatedString(getErrorReport(action.throwable, task.url))
-                )
-                context.makeToast(R.string.error_copied)
-            }
-            UiAction.CopyVideoURL -> {
-                clipboardManager.setText(AnnotatedString(task.url))
-                context.makeToast(R.string.link_copied)
-            }
-            is UiAction.OpenFile -> {
-                action.filePath?.let {
-                    FileUtil.openFile(path = it) { context.makeToast(R.string.file_unavailable) }
-                }
-            }
-            is UiAction.OpenThumbnailURL -> {
-                uriHandler.openUri(action.url)
-            }
-            is UiAction.OpenVideoURL -> {
-                uriHandler.openUri(action.url)
-            }
-            is UiAction.ShareFile -> {
-                val shareTitle = context.getString(R.string.share)
-                FileUtil.createIntentForSharingFile(action.filePath)?.let {
-                    context.startActivity(Intent.createChooser(it, shareTitle))
-                }
-            }
+    val taskStateMap = downloader.getTaskStateMap()
+    val activeTasksCount =
+        taskStateMap.count {
+            it.value.downloadState is Running ||
+                it.value.downloadState is FetchingInfo ||
+                it.value.downloadState is ReadyWithInfo
         }
-    }
+
+    SnaptubeHomeScreen(
+        modifier = modifier,
+        activeTaskCount = activeTasksCount,
+        onUrlSubmit = { url ->
+            view.slightHapticFeedback()
+            dialogViewModel.postAction(Action.ShowSheet(listOf(url)))
+        },
+        onNavigateToTasks = {
+            onMenuOpen()
+        },
+    )
 
     var preferences by remember {
         mutableStateOf(DownloadUtil.DownloadPreferences.createFromPreferences())

@@ -1,44 +1,56 @@
-name: Build Release APK
+name: Build SnapSeal APKs
 
 on:
+  push:
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        cache: 'gradle'
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-    - uses: gradle/actions/setup-gradle@v3
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
-    - run: gradle assembleRelease
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
-    - name: Sign app APK
-      id: sign_app
-      uses: ilharp/sign-android-release@nightly
-      with:
-        releaseDir: app/build/outputs/apk/release
-        signingKey: ${{ secrets.SIGNING_KEY }}
-        keyAlias: ${{ secrets.ALIAS }}
-        keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-        keyPassword: ${{ secrets.KEY_PASSWORD }}
+      - name: Build Generic Release and Debug APKs
+        run: ./gradlew assembleGenericRelease assembleGenericDebug --stacktrace
 
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: signed-apks
-        path: app/build/outputs/apk/release/*-arm64-v8a-release-signed.apk
-        if-no-files-found: error
-        retention-days: 20
+      - name: Sign Release APKs
+        run: |
+          KEYSTORE="app/snapseal-release.jks"
+          keytool -genkeypair -v -keystore "$KEYSTORE" -alias snapseal -keyalg RSA -keysize 2048 -validity 10000 -storepass snapseal123 -keypass snapseal123 -dname "CN=SnapSeal, OU=dev-abuhurairah, O=SnapSeal, C=PK"
+          
+          APKSIGNER=$(find $ANDROID_HOME/build-tools -name apksigner | sort -V | tail -n 1)
+          echo "Using apksigner: $APKSIGNER"
+
+          for apk in $(find app/build/outputs/apk/generic/release -name "*.apk" ! -name "*-signed.apk"); do
+            echo "Signing $apk"
+            "$APKSIGNER" sign --ks "$KEYSTORE" --ks-pass pass:snapseal123 --ks-key-alias snapseal --key-pass pass:snapseal123 --out "${apk%.apk}-signed.apk" "$apk" || true
+          done
+
+      - name: Upload SnapSeal APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: SnapSeal-APKs
+          path: |
+            app/build/outputs/apk/generic/release/*-signed.apk
+            app/build/outputs/apk/generic/debug/*.apk
+            app/build/outputs/apk/**/*.apk
+          if-no-files-found: warn
+          retention-days: 30
