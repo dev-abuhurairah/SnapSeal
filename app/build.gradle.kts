@@ -102,8 +102,6 @@ android {
             )
             if (keystorePropertiesFile.exists()) {
                 signingConfig = signingConfigs.getByName("githubPublish")
-            } else {
-                signingConfig = signingConfigs.getByName("debug")
             }
         }
         debug {

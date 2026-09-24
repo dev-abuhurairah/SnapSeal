@@ -28,12 +28,21 @@ jobs:
       - name: Build SnapSeal Release APKs
         run: ./gradlew assembleRelease --stacktrace
 
-      - name: Collect APKs
+      - name: Sign APKs
         run: |
           mkdir -p apk-output
-          echo "=== Searching for generated APKs ==="
-          find app/build/outputs/apk -name "*.apk" -type f -exec cp -v {} apk-output/ \;
-          echo "=== Collected APKs in apk-output/ ==="
+          keytool -genkeypair -v -keystore release.jks -alias snapseal -keyalg RSA -keysize 2048 -validity 10000 -storepass snapseal123 -keypass snapseal123 -dname "CN=SnapSeal, OU=dev-abuhurairah, O=SnapSeal, C=PK"
+          
+          APKSIGNER=$(find $ANDROID_HOME/build-tools -name apksigner | sort -V | tail -n 1)
+          echo "Found apksigner at: $APKSIGNER"
+
+          for apk in $(find app/build/outputs/apk -name "*.apk"); do
+            echo "Signing $apk ..."
+            filename=$(basename "$apk")
+            "$APKSIGNER" sign --ks release.jks --ks-pass pass:snapseal123 --ks-key-alias snapseal --key-pass pass:snapseal123 --out "apk-output/$filename" "$apk"
+          done
+
+          echo "Final signed APKs in apk-output/:"
           ls -la apk-output/
 
       - name: Upload SnapSeal APKs
