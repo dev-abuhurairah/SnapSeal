@@ -32,6 +32,7 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.junkfood.seal.download.DownloaderV2
 import org.koin.compose.koinInject
