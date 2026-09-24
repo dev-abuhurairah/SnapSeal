@@ -25,17 +25,16 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build SnapSeal APKs
-        run: ./gradlew assembleGenericRelease assembleGenericDebug --stacktrace
+      - name: Build SnapSeal Release APKs
+        run: ./gradlew assembleRelease --stacktrace
 
       - name: Collect APKs
         run: |
           mkdir -p apk-output
           echo "=== Searching for generated APKs ==="
-          find app/build/outputs -name "*.apk" -print
-          find app/build/outputs -name "*.apk" -exec cp {} apk-output/ \;
+          find app/build/outputs/apk -name "*.apk" -type f -exec cp -v {} apk-output/ \;
           echo "=== Collected APKs in apk-output/ ==="
-          ls -la apk-output
+          ls -la apk-output/
 
       - name: Upload SnapSeal APKs
         uses: actions/upload-artifact@v4
