@@ -25,47 +25,22 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build APKs
+      - name: Build SnapSeal APKs
+        run: ./gradlew assembleGenericRelease assembleGenericDebug --stacktrace
+
+      - name: Collect APKs
         run: |
-          ./gradlew assembleRelease --stacktrace 2>&1 | tee build.log
-
-      - name: Print build errors if failed
-        if: failure()
-        run: |
-          echo "=== LAST 100 LINES OF BUILD LOG ==="
-          tail -n 100 build.log || true
-
-      - name: Sign APKs
-        run: |
-          KEYSTORE="app/snapseal-release.jks"
-          keytool -genkeypair -v -keystore "$KEYSTORE" -alias snapseal -keyalg RSA -keysize 2048 -validity 10000 -storepass snapseal123 -keypass snapseal123 -dname "CN=SnapSeal, OU=dev-abuhurairah, O=SnapSeal, C=PK"
-          
-          APKSIGNER=$(find $ANDROID_HOME/build-tools -name apksigner | sort -V | tail -n 1)
-          echo "Using apksigner: $APKSIGNER"
-
-          echo "=== Found the following APKs before signing ==="
-          find . -name "*.apk"
-
-          for apk in $(find . -name "*.apk" ! -name "*-signed.apk"); do
-            echo "Signing $apk"
-            "$APKSIGNER" sign --ks "$KEYSTORE" --ks-pass pass:snapseal123 --ks-key-alias snapseal --key-pass pass:snapseal123 --out "${apk%.apk}-signed.apk" "$apk" || true
-          done
-
-          echo "=== All APKs after signing ==="
-          find . -name "*.apk"
-
-          # Stage all APKs in a clean artifact directory
-          mkdir -p release-apks
-          find . -name "*signed*.apk" -exec cp {} release-apks/ \;
-          if [ -z "$(ls -A release-apks)" ]; then
-            find . -name "*.apk" -exec cp {} release-apks/ \;
-          fi
-          ls -la release-apks
+          mkdir -p apk-output
+          echo "=== Searching for generated APKs ==="
+          find app/build/outputs -name "*.apk" -print
+          find app/build/outputs -name "*.apk" -exec cp {} apk-output/ \;
+          echo "=== Collected APKs in apk-output/ ==="
+          ls -la apk-output
 
       - name: Upload SnapSeal APKs
         uses: actions/upload-artifact@v4
         with:
           name: SnapSeal-APKs
-          path: release-apks/*.apk
+          path: apk-output/*.apk
           if-no-files-found: error
           retention-days: 30
