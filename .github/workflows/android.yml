@@ -26,7 +26,21 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build SnapSeal Release APKs
-        run: ./gradlew assembleRelease --stacktrace
+        run: |
+          ./gradlew assembleRelease --stacktrace > build.log 2>&1 || BUILD_FAILED=true
+          if [ "$BUILD_FAILED" = "true" ]; then
+            echo "=== GRADLE BUILD FAILED ==="
+            tail -n 100 build.log
+            ERROR_MSG=$(grep -A 5 "What went wrong:" build.log | head -n 5 | tr '\n' ' ')
+            if [ -z "$ERROR_MSG" ]; then
+              ERROR_MSG=$(grep -i "error:" build.log | head -n 5 | tr '\n' ' ')
+            fi
+            if [ -z "$ERROR_MSG" ]; then
+              ERROR_MSG=$(tail -n 15 build.log | tr '\n' ' ')
+            fi
+            echo "::error title=GradleBuildError::$ERROR_MSG"
+            exit 1
+          fi
 
       - name: Sign APKs
         run: |
