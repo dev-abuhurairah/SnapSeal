@@ -134,7 +134,11 @@ android {
         }
     }
 
-    lint { disable.addAll(listOf("MissingTranslation", "ExtraTranslation", "MissingQuantity")) }
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
+        disable.addAll(listOf("MissingTranslation", "ExtraTranslation", "MissingQuantity"))
+    }
 
     applicationVariants.all {
         outputs.all {

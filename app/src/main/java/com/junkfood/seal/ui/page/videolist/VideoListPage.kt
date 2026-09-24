@@ -478,11 +478,13 @@ fun VideoListPage(
                     )
                 }
                 items(downloadingEntries, key = { "active_${it.key.hashCode()}" }) { (task, state) ->
-                    val progress = state.progress
                     val downloadState = state.downloadState
+                    val progress =
+                        (downloadState as? com.junkfood.seal.download.Task.DownloadState.Running)?.progress ?: 0f
                     val isError = downloadState is com.junkfood.seal.download.Task.DownloadState.Error
                     val isRunning =
                         downloadState is com.junkfood.seal.download.Task.DownloadState.Running
+                    val taskTitle = state.viewState.title.ifBlank { task.url }
 
                     Row(
                         modifier =
@@ -510,7 +512,7 @@ fun VideoListPage(
                         Spacer(Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = task.title.ifBlank { task.url },
+                                text = taskTitle,
                                 color = Color.White,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium,

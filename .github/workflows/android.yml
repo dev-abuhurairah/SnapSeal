@@ -26,7 +26,14 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build Generic Release and Debug APKs
-        run: ./gradlew assembleGenericRelease assembleGenericDebug --stacktrace
+        run: |
+          ./gradlew assembleGenericRelease assembleGenericDebug --stacktrace 2>&1 | tee build.log
+
+      - name: Print build errors if failed
+        if: failure()
+        run: |
+          echo "=== LAST 100 LINES OF BUILD LOG ==="
+          tail -n 100 build.log || true
 
       - name: Sign Release APKs
         run: |
