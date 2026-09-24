@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowForwardIos
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -80,10 +82,10 @@ fun SettingItem(title: String, description: String = "", icon: ImageVector?, onC
                 }
             }
             Icon(
-                imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                imageVector = Icons.AutoMirrored.Outlined.ArrowForwardIos,
                 contentDescription = null,
                 tint = androidx.compose.ui.graphics.Color(0xFF6E6E76),
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(16.dp),
             )
         }
     }
